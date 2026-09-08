@@ -1,0 +1,11 @@
+# 项目级 cargo 镜像配置。
+#
+# 全局配置中的 tuna 镜像当前返回 403，此处改用 USTC 稀疏索引，
+# 保证本项目的 `cargo build` / `cargo check` 可离线一致地完成。
+# 若全局镜像已修复，可删除本文件以恢复默认行为。
+
+[source.crates-io]
+replace-with = "ustc-sparse"
+
+[source.ustc-sparse]
+registry = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
