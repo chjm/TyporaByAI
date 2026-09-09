@@ -20,6 +20,8 @@ pub fn run() {
             commands::delete_file,
             commands::save_image,
             commands::get_file_meta,
+            commands::is_dir,
+            commands::get_open_file,
             commands::get_config,
             commands::set_config,
         ])

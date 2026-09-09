@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { open, save } from '@tauri-apps/plugin-dialog';
   import * as store from '$lib/stores/app.svelte';
   import * as ipc from '$lib/ipc';
@@ -14,6 +14,7 @@
     type Match,
   } from '$lib/search';
   import { convertFileSrc } from '@tauri-apps/api/core';
+  import { getCurrentWebview } from '@tauri-apps/api/webview';
   import Toolbar from '$lib/components/Toolbar.svelte';
   import FileTree from '$lib/components/FileTree.svelte';
   import Outline from '$lib/components/Outline.svelte';
@@ -74,7 +75,7 @@
       await openFolder();
       if (!store.app.rootPath) return;
     }
-    await store.createEntry(store.app.rootPath, false, '未命名');
+    await store.createEntry(store.app.rootPath, false, 'Untitled');
   }
 
   async function newFolder() {
@@ -82,7 +83,7 @@
       await openFolder();
       if (!store.app.rootPath) return;
     }
-    await store.createEntry(store.app.rootPath, true, '新建文件夹');
+    await store.createEntry(store.app.rootPath, true, 'New Folder');
   }
 
   async function saveCurrentFile() {
@@ -130,7 +131,7 @@
     try {
       const meta = await ipc.getFileMeta(store.app.currentFile);
       if (meta.modifiedMs !== store.app.lastSavedMtime) {
-        if (window.confirm('文件已在外部被修改，是否重新加载？')) {
+        if (window.confirm('The file has been modified externally. Reload it?')) {
           await loadFile(store.app.currentFile);
         }
       }
@@ -172,6 +173,22 @@
     if (!dir) return src;
     const rel = src.replace(/^\.\//, '').replace(/\//g, '\\');
     return convertFileSrc(dir + '\\' + rel);
+  }
+
+  // -------------------------------------------------------------------------
+  // 拖拽打开 / 文件关联启动
+  // -------------------------------------------------------------------------
+  const TEXT_EXTS = ['md', 'markdown', 'mdown', 'mkd', 'txt'];
+
+  /** 处理拖拽进入的路径：目录则作为工作区打开，文本文件则直接加载。 */
+  async function handleDropPaths(paths: string[]) {
+    if (paths.length === 0) return;
+    const first = paths[0];
+    if (await ipc.isDir(first)) {
+      await store.openFolder(first);
+    } else if (TEXT_EXTS.includes(getExt(first))) {
+      await loadFile(first);
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -254,13 +271,30 @@
     }
   }
 
+  let unlistenDrop: (() => void) | undefined;
+
   onMount(() => {
     window.addEventListener('keydown', onKeydown);
     window.addEventListener('focus', checkExternalChange);
-    return () => {
-      window.removeEventListener('keydown', onKeydown);
-      window.removeEventListener('focus', checkExternalChange);
-    };
+    void setupLaunchHandlers();
+  });
+
+  async function setupLaunchHandlers() {
+    try {
+      unlistenDrop = await getCurrentWebview().onDragDropEvent((event) => {
+        if (event.payload.type === 'drop') handleDropPaths(event.payload.paths);
+      });
+      const openFile = await ipc.getOpenFile();
+      if (openFile) await loadFile(openFile);
+    } catch {
+      /* 拖拽监听或启动文件读取失败时静默忽略 */
+    }
+  }
+
+  onDestroy(() => {
+    window.removeEventListener('keydown', onKeydown);
+    window.removeEventListener('focus', checkExternalChange);
+    unlistenDrop?.();
   });
 </script>
 
@@ -281,17 +315,17 @@
     {#if store.app.showSidebar}
       <aside class="sidebar">
         <div class="sidebar-title">
-          <span>文件</span>
+          <span>Files</span>
           <span class="sidebar-actions">
-            <button class="mini" title="新建文件" onclick={newFile}>文件</button>
-            <button class="mini" title="新建文件夹" onclick={newFolder}>文件夹</button>
+            <button class="mini" title="New File" onclick={newFile}>File</button>
+            <button class="mini" title="New Folder" onclick={newFolder}>Folder</button>
           </span>
         </div>
         <div class="sidebar-body">
           {#if store.app.rootPath}
             <FileTree nodes={store.app.fileTree} onOpenFile={loadFile} />
           {:else}
-            <p class="hint">尚未打开文件夹</p>
+            <p class="hint">No folder opened</p>
           {/if}
         </div>
       </aside>
@@ -321,7 +355,7 @@
 
     {#if store.app.showOutline}
       <aside class="outline">
-        <div class="sidebar-title"><span>大纲</span></div>
+        <div class="sidebar-title"><span>Outline</span></div>
         <div class="sidebar-body">
           <Outline items={outline} activeIndex={-1} onJump={jumpToHeading} />
         </div>

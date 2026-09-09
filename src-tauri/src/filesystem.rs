@@ -42,7 +42,7 @@ pub struct FileMeta {
 /// @return 该目录下的文件节点列表
 /// @throws 目录不存在或无法读取时返回错误信息
 pub fn list_directory(path: &str) -> Result<Vec<FileNode>, String> {
-    let entries = fs::read_dir(path).map_err(|e| format!("无法读取目录 {}: {}", path, e))?;
+    let entries = fs::read_dir(path).map_err(|e| format!("Failed to read directory {}: {}", path, e))?;
 
     let mut dirs: Vec<FileNode> = Vec::new();
     let mut files: Vec<FileNode> = Vec::new();
@@ -97,7 +97,7 @@ fn is_text_file(path: &Path) -> bool {
 /// @return 文件内容字符串
 /// @throws 文件不存在、无权限或非 UTF-8 时返回错误信息
 pub fn read_file(path: &str) -> Result<String, String> {
-    fs::read_to_string(path).map_err(|e| format!("无法读取文件 {}: {}", path, e))
+    fs::read_to_string(path).map_err(|e| format!("Failed to read file {}: {}", path, e))
 }
 
 /// 将文本内容写入文件（自动创建父目录）。
@@ -108,9 +108,9 @@ pub fn read_file(path: &str) -> Result<String, String> {
 /// @throws 父目录创建失败或写入失败时返回错误信息
 pub fn write_file(path: &str, content: &str) -> Result<(), String> {
     if let Some(parent) = Path::new(path).parent() {
-        fs::create_dir_all(parent).map_err(|e| format!("无法创建父目录: {}", e))?;
+        fs::create_dir_all(parent).map_err(|e| format!("Failed to create parent directory: {}", e))?;
     }
-    fs::write(path, content).map_err(|e| format!("无法写入文件 {}: {}", path, e))
+    fs::write(path, content).map_err(|e| format!("Failed to write file {}: {}", path, e))
 }
 
 /// 新建文件或目录。
@@ -122,17 +122,17 @@ pub fn write_file(path: &str, content: &str) -> Result<(), String> {
 pub fn create_file(path: &str, is_dir: bool) -> Result<(), String> {
     let p = Path::new(path);
     if p.exists() {
-        return Err(format!("目标已存在: {}", path));
+        return Err(format!("Target already exists: {}", path));
     }
     if is_dir {
-        fs::create_dir_all(p).map_err(|e| format!("无法创建目录: {}", e))
+        fs::create_dir_all(p).map_err(|e| format!("Failed to create directory: {}", e))
     } else {
         if let Some(parent) = p.parent() {
-            fs::create_dir_all(parent).map_err(|e| format!("无法创建父目录: {}", e))?;
+            fs::create_dir_all(parent).map_err(|e| format!("Failed to create parent directory: {}", e))?;
         }
         fs::File::create(p)
             .map(|_| ())
-            .map_err(|e| format!("无法创建文件: {}", e))
+            .map_err(|e| format!("Failed to create file: {}", e))
     }
 }
 
@@ -146,12 +146,12 @@ pub fn rename_file(path: &str, new_name: &str) -> Result<(), String> {
     let src = Path::new(path);
     let parent = src
         .parent()
-        .ok_or_else(|| "无法解析父目录".to_string())?;
+        .ok_or_else(|| "Failed to resolve parent directory".to_string())?;
     let dst = parent.join(new_name);
     if dst.exists() {
-        return Err(format!("目标已存在: {}", dst.to_string_lossy()));
+        return Err(format!("Target already exists: {}", dst.to_string_lossy()));
     }
-    fs::rename(src, &dst).map_err(|e| format!("无法重命名: {}", e))
+    fs::rename(src, &dst).map_err(|e| format!("Failed to rename: {}", e))
 }
 
 /// 删除文件或目录（目录递归删除）。
@@ -162,9 +162,9 @@ pub fn rename_file(path: &str, new_name: &str) -> Result<(), String> {
 pub fn delete_file(path: &str) -> Result<(), String> {
     let p = Path::new(path);
     if p.is_dir() {
-        fs::remove_dir_all(p).map_err(|e| format!("无法删除目录: {}", e))
+        fs::remove_dir_all(p).map_err(|e| format!("Failed to delete directory: {}", e))
     } else {
-        fs::remove_file(p).map_err(|e| format!("无法删除文件: {}", e))
+        fs::remove_file(p).map_err(|e| format!("Failed to delete file: {}", e))
     }
 }
 
@@ -177,12 +177,12 @@ pub fn delete_file(path: &str) -> Result<(), String> {
 /// @throws base64 解码失败或写入失败时返回错误信息
 pub fn save_image(dir: &str, name: &str, base64_data: &str) -> Result<String, String> {
     let bytes = base64_decode(base64_data)?;
-    fs::create_dir_all(dir).map_err(|e| format!("无法创建图片目录: {}", e))?;
+    fs::create_dir_all(dir).map_err(|e| format!("Failed to create image directory: {}", e))?;
     let file_path = PathBuf::from(dir).join(name);
     let mut f =
-        fs::File::create(&file_path).map_err(|e| format!("无法创建图片文件: {}", e))?;
+        fs::File::create(&file_path).map_err(|e| format!("Failed to create image file: {}", e))?;
     f.write_all(&bytes)
-        .map_err(|e| format!("无法写入图片: {}", e))?;
+        .map_err(|e| format!("Failed to write image: {}", e))?;
     Ok(name.to_string())
 }
 
@@ -195,7 +195,7 @@ fn base64_decode(data: &str) -> Result<Vec<u8>, String> {
     use base64::Engine;
     base64::engine::general_purpose::STANDARD
         .decode(data)
-        .map_err(|e| format!("base64 解码失败: {}", e))
+        .map_err(|e| format!("Failed to decode base64: {}", e))
 }
 
 /// 获取文件元数据（最后修改时间与大小）。
@@ -204,7 +204,7 @@ fn base64_decode(data: &str) -> Result<Vec<u8>, String> {
 /// @return 文件元数据
 /// @throws 文件不存在或无法获取时返回错误信息
 pub fn get_file_meta(path: &str) -> Result<FileMeta, String> {
-    let meta = fs::metadata(path).map_err(|e| format!("无法获取文件信息: {}", e))?;
+    let meta = fs::metadata(path).map_err(|e| format!("Failed to get file metadata: {}", e))?;
     let modified = meta
         .modified()
         .unwrap_or(UNIX_EPOCH)
@@ -215,4 +215,12 @@ pub fn get_file_meta(path: &str) -> Result<FileMeta, String> {
         modified_ms: modified,
         size: meta.len(),
     })
+}
+
+/// 判断路径是否为目录。
+///
+/// @param path 文件或目录绝对路径
+/// @return 是目录返回 true
+pub fn is_dir(path: &str) -> bool {
+    Path::new(path).is_dir()
 }

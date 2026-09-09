@@ -8,25 +8,25 @@
 
   let { wordCount }: Props = $props();
 
-  let fileName = $derived(app.currentFile ? app.currentFile.split(/[\\/]/).pop() ?? '' : '未打开文件');
+  let fileName = $derived(app.currentFile ? app.currentFile.split(/[\\/]/).pop() ?? '' : 'No file open');
 </script>
 
 <footer class="statusbar">
   <span class="left">
     <span class="file">{fileName}</span>
     {#if app.dirty}
-      <span class="dot" title="未保存"></span>
+      <span class="dot" title="Unsaved"></span>
     {/if}
     <span class="status">{app.saveStatus}</span>
   </span>
 
   <span class="right">
     {#if app.sourceMode}
-      <span class="tag">源码</span>
+      <span class="tag">Source</span>
     {/if}
-    <span>{wordCount.words} 字</span>
-    <span>{wordCount.chars} 字符</span>
-    <span>{wordCount.lines} 行</span>
+    <span>{wordCount.words} words</span>
+    <span>{wordCount.chars} characters</span>
+    <span>{wordCount.lines} lines</span>
   </span>
 </footer>
 

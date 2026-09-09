@@ -12,7 +12,7 @@
 
 <div class="outline">
   {#if items.length === 0}
-    <p class="empty">无标题</p>
+    <p class="empty">No headings</p>
   {:else}
     <ul>
       {#each items as item, i (i)}

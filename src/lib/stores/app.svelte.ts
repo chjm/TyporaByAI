@@ -59,7 +59,7 @@ export const app = $state<AppState>({
   currentFile: '',
   content: '',
   dirty: false,
-  saveStatus: '未打开文件',
+  saveStatus: 'No file open',
   lastSavedMtime: 0,
   sourceMode: false,
   theme: 'light',
@@ -214,7 +214,7 @@ export async function deleteEntry(path: string): Promise<void> {
     app.currentFile = '';
     app.content = '';
     app.dirty = false;
-    app.saveStatus = '未打开文件';
+    app.saveStatus = 'No file open';
   }
 }
 
@@ -273,7 +273,7 @@ export function setSourceText(value: string): void {
 export function markEdited(markdown: string): void {
   app.content = markdown;
   app.dirty = true;
-  app.saveStatus = '未保存';
+  app.saveStatus = 'Unsaved';
 }
 
 // ---------------------------------------------------------------------------
@@ -292,7 +292,7 @@ export async function loadFile(path: string): Promise<string> {
   app.content = text;
   app.sourceText = text;
   app.dirty = false;
-  app.saveStatus = '已保存';
+  app.saveStatus = 'Saved';
   const meta = await ipc.getFileMeta(path);
   app.lastSavedMtime = meta.modifiedMs;
   await addRecentFile(path);
@@ -309,12 +309,12 @@ export async function saveFile(): Promise<boolean> {
   try {
     await ipc.writeFile(app.currentFile, app.content);
     app.dirty = false;
-    app.saveStatus = '已保存';
+    app.saveStatus = 'Saved';
     const meta = await ipc.getFileMeta(app.currentFile);
     app.lastSavedMtime = meta.modifiedMs;
     return true;
   } catch {
-    app.saveStatus = '保存失败';
+    app.saveStatus = 'Save failed';
     return false;
   }
 }
@@ -330,13 +330,13 @@ export async function saveFileAs(path: string): Promise<boolean> {
     await ipc.writeFile(path, app.content);
     app.currentFile = path;
     app.dirty = false;
-    app.saveStatus = '已保存';
+    app.saveStatus = 'Saved';
     const meta = await ipc.getFileMeta(path);
     app.lastSavedMtime = meta.modifiedMs;
     await addRecentFile(path);
     return true;
   } catch {
-    app.saveStatus = '保存失败';
+    app.saveStatus = 'Save failed';
     return false;
   }
 }

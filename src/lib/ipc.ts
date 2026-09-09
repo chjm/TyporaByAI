@@ -48,6 +48,16 @@ export function getFileMeta(path: string): Promise<FileMeta> {
   return invoke<FileMeta>('get_file_meta', { path });
 }
 
+/** 判断路径是否为目录。 */
+export function isDir(path: string): Promise<boolean> {
+  return invoke<boolean>('is_dir', { path });
+}
+
+/** 获取通过文件关联启动时传入的文件路径。 */
+export function getOpenFile(): Promise<string | null> {
+  return invoke<string | null>('get_open_file');
+}
+
 /** 读取应用配置。 */
 export function getConfig(): Promise<AppConfig> {
   return invoke<AppConfig>('get_config');

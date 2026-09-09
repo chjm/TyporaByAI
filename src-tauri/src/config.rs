@@ -37,7 +37,7 @@ fn config_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let dir = app
         .path()
         .app_config_dir()
-        .map_err(|e| format!("无法获取配置目录: {}", e))?;
+        .map_err(|e| format!("Failed to get config directory: {}", e))?;
     Ok(dir.join("config.json"))
 }
 
@@ -65,8 +65,8 @@ pub fn load_config(app: &tauri::AppHandle) -> AppConfig {
 pub fn save_config(app: &tauri::AppHandle, config: &AppConfig) -> Result<(), String> {
     let path = config_path(app)?;
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).map_err(|e| format!("无法创建配置目录: {}", e))?;
+        fs::create_dir_all(parent).map_err(|e| format!("Failed to create config directory: {}", e))?;
     }
     let data = serde_json::to_string_pretty(config).map_err(|e| e.to_string())?;
-    fs::write(&path, data).map_err(|e| format!("无法写入配置: {}", e))
+    fs::write(&path, data).map_err(|e| format!("Failed to write config: {}", e))
 }

@@ -43,36 +43,36 @@
       class="field"
       bind:this={inputEl}
       bind:value={query}
-      placeholder="查找"
+      placeholder="Find"
       onkeydown={(e) => {
         if (e.key === 'Enter') search();
         if (e.key === 'Escape') onClose();
       }}
     />
-    <span class="count">{query ? (matchCount > 0 ? `${currentIndex + 1}/${matchCount}` : '无结果') : ''}</span>
-    <button class="btn" title="上一个" onclick={onFindPrev}>↑</button>
-    <button class="btn" title="下一个" onclick={onFindNext}>↓</button>
+    <span class="count">{query ? (matchCount > 0 ? `${currentIndex + 1}/${matchCount}` : 'No results') : ''}</span>
+    <button class="btn" title="Previous" onclick={onFindPrev}>↑</button>
+    <button class="btn" title="Next" onclick={onFindNext}>↓</button>
   </div>
 
   <div class="row">
     <input
       class="field"
       bind:value={replacement}
-      placeholder="替换为"
+      placeholder="Replace with"
       onkeydown={(e) => {
         if (e.key === 'Enter') onReplace(replacement);
       }}
     />
-    <button class="btn text" onclick={() => onReplace(replacement)}>替换</button>
-    <button class="btn text" onclick={() => onReplaceAll(replacement)}>全部替换</button>
+    <button class="btn text" onclick={() => onReplace(replacement)}>Replace</button>
+    <button class="btn text" onclick={() => onReplaceAll(replacement)}>Replace All</button>
   </div>
 
   <div class="row options">
     <label class="case">
       <input type="checkbox" bind:checked={caseSensitive} />
-      区分大小写
+      Match case
     </label>
-    <button class="btn text" onclick={onClose}>关闭</button>
+    <button class="btn text" onclick={onClose}>Close</button>
   </div>
 </div>
 

@@ -81,6 +81,28 @@ pub fn get_file_meta(path: String) -> Result<FileMeta, String> {
     filesystem::get_file_meta(&path)
 }
 
+/// 判断路径是否为目录。
+///
+/// @param path 文件或目录绝对路径
+/// @return 是目录返回 true
+#[tauri::command]
+pub fn is_dir(path: String) -> bool {
+    filesystem::is_dir(&path)
+}
+
+/// 获取通过文件关联启动时传入的文件路径。
+///
+/// 双击 markdown 文件启动应用时，操作系统会将文件路径作为命令行参数传入。
+/// 返回首个确认为文件存在的参数，未找到时返回 `None`。
+///
+/// @return 首个存在的文件路径
+#[tauri::command]
+pub fn get_open_file() -> Option<String> {
+    std::env::args()
+        .skip(1)
+        .find(|arg| std::path::Path::new(arg).is_file())
+}
+
 /// 读取应用配置。
 ///
 /// @param app Tauri 应用句柄
